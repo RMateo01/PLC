@@ -1,0 +1,152 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="text-center">
+        <h1>
+            {{ playlist.name }}
+            <br>
+            <i> de {{ playlist.owner.display_name }}</i>
+
+        </h1>
+    </div>
+
+    <div class="row bg-dark text-white mx-auto px-2">
+
+        <div class="col-4">
+
+            <div class="album-img">
+
+                {% for image in playlist.images %}
+                    {% if loop.first %}
+                        <img src="{{ image.url }}" width="300" height="300">
+                    {% endif %}
+                    <br>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="col-4">
+            <br>
+            <div class="embed">
+                <iframe src="https://open.spotify.com/embed/playlist/{{ playlist.id }}" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            </div>
+
+        </div>
+
+        <div class="col-4">
+
+            <br>
+            <h4> Informations playlist </h4>
+
+            <br>
+
+            <h3>
+                {% set flowBool = false %}
+                {% for flow in app.user.flows if flow.playlistId == playlist.id %}
+
+                    {% set flowBool = true %}
+
+                {% endfor %}
+
+                {% if flowBool %}
+                    <a href="{{ path('flow_playlist', {'id': playlist.id}) }}" class="card-link js-like-playlist fa fa-heart text-danger">
+                        Flows
+                    </a>
+                {% else %}
+                    <a href="{{ path('flow_playlist', {'id': playlist.id}) }}" class="card-link js-like-playlist fa fa-heart-o">
+                        Flows
+                    </a>
+                {% endif %}
+            </h3>
+
+            <br><br>
+
+            Créateur :
+                {% if createur %}
+                    {% if playlist.owner.display_name | length > 20 %}
+                        <a href="{{ path('profil', {id : createur.id}) }}">
+                            {{ playlist.owner.display_name |striptags|slice(0, 20) }} ...
+                        </a>
+                    {% else %}
+                        <a href="{{ path('profil', {id : createur.id}) }}">
+                            {{ playlist.owner.display_name }}
+                        </a>
+                    {% endif %}
+                {% else %}
+                    {% if playlist.owner.display_name | length > 20 %}
+                            {{ playlist.owner.display_name |striptags|slice(0, 20) }} ...
+                    {% else %}
+                            {{ playlist.owner.display_name }}
+                    {% endif %}
+                {% endif %}
+            <br><br>
+            Description : {{ playlist.description }}
+            <br><br>
+            Followers : {{ playlist.followers.total }}
+            <br><br>
+
+        </div>
+        <br>
+    </div>
+
+    <div class="bg-dark text-center text-white">
+        <h1 class="text-center"><a href="#tracks" onclick="afficheTrack()"> Liste musiques</a></h1>
+        <br>
+        <div id="tracks" style="display: none">
+            {% for track in playlist.tracks.items %}
+                <h3>{{ loop.index }}</h3>
+                    <h3><a href="{{ path('musique_page',{'id' : track.track.id}) }}" class="text-warning"> {{ track.track.name }}</a></h3>
+                    <h5>
+                        <i>
+                            de
+                            {% for artist in track.track.artists %}
+                                <a href="{{ path('artiste_page',{'id' : artist.id}) }}">{{ artist.name }}</a>
+                            {% endfor %}
+                        </i>
+                    </h5>
+                    <br>
+
+                    {% if app.user.idSpotify == playlist.owner.id %}
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#exampleModal{{ track.track.id }}">
+                            Supprimer
+                        </button>
+
+                        <!-- Modal -->
+                        <div class="modal fade text-dark" id="exampleModal{{ track.track.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Supprimer</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Êtes vous sur de vouloir supprimer ce son de votre playlist ?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-warning" href="{{ path('track_playlist_delete',{'id' : playlist.id , 'idtrack' : track.track.id, 'idsnapchot' : playlist.snapshot_id}) }}" role="button" >Oui</a>
+                                        <a class="btn btn-danger" href="#" role="button" data-dismiss="modal">Annuler</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                <hr class="bg-danger">
+            {% endfor %}
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('js/publication.js') }}"></script>
+{% endblock %}

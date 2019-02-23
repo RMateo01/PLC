@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="bg-dark text-center text-white">
+        <h1> Playlists de {{ app.user.username }}</h1>
+        <br>
+
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModalNewP">
+            Creer nouvelle playlist
+        </button>
+
+        <!-- Modal -->
+        <form action="{{ path('playlist_add') }}" method="post">
+            <div class="modal fade text-dark" id="exampleModalNewP" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Creer nouvelle playlist</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Nom playlist : <input type="text" name="name"><br>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="href btn btn-success">Creer </button>
+                            <a class="btn btn-danger" href="#" role="button" data-dismiss="modal">Annuler</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <br>
+        <form class="form-inline my-2 my-lg-0 justify-content-center" action="{{ path('playlist_search') }}" method="POST">
+            <input class="form-control mr-sm-2" name="search" type="search" placeholder="Playlist" aria-label="Search">
+            <button class="btn btn-warning my-2 my-sm-0" type="submit">Rechercher playlist</button>
+        </form>
+        <br><br>
+        {% for playlist in playlistsUser.items %}
+            <h5>
+                <a href="{{ path('profil_playlist', {'id' : playlist.id})}}" class="js-playlist text-danger fa fa-angle-right" datatype="{{ playlist.id }}"> {{ playlist.name }}</a>
+                <a class="btn btn-warning btn-sm ml-2" href="{{ path('playlist_page',{'id' : playlist.id}) }}" role="button" >Modifier</a>
+
+
+                <button type="button" class="btn btn-danger btn-sm ml-2" data-toggle="modal" data-target="#exampleModal{{ playlist.id }}">
+                    Supprimer
+                </button>
+
+                <!-- Modal -->
+                <form action="{{ path('playlist_delete',{'id' : playlist.id}) }}" method="post">
+                    <div class="modal fade text-dark h5" id="exampleModal{{ playlist.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Supprimer</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Êtes vous sur de vouloir supprimer cette playlist ?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="href btn btn-success">Oui</button>
+                                    <a class="btn btn-danger" href="#" role="button" data-dismiss="modal">Annuler</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </h5>
+
+            <div id="playlist{{ playlist.id }}" class="card bg-dark text-white border border-danger" style="display: none">
+                <span class="imgPlaylist"></span>
+                <br>
+                <span class="namePlaylist"></span>
+                <br>
+                <span class="descriptionPlaylist"></span>
+                <br>
+                <span class="followersPlaylist"></span>
+                <br><br>
+                <span class="embedPlaylist"></span>
+                <br>
+
+            </div>
+            <br><br>
+        {% endfor %}
+    </div>
+
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('js/publication.js') }}"></script>
+{% endblock %}

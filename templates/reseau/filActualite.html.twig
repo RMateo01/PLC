@@ -1,0 +1,639 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+
+    {{ parent() }}
+
+    <link rel="stylesheet" href="{{ asset('css/filactu.css') }}">
+
+{% endblock %}
+
+{% block body %}
+
+    <br><br>
+    <div class="container-fluid gedf-wrapper">
+        <div class="row">
+
+            {% if app.user %}
+
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body bg-dark text-white">
+                        <div class="h5">Les 10 nouveaux albums français</div>
+                        <br>
+                        <hr class="bg-danger">
+                        {% for album in releases.albums.items %}
+
+                            {% for image in album.images %}
+                                {% if image.width == 64 %}
+
+                                    <div style="width:80px;height:80px;float:left;">
+                                        <img src="{{ image.url }}">
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+
+                            <div style="width:150px;height:70px;margin-left:80px">
+
+                                <a href="{{ path('album_page', {id : album.id}) }}">
+                                    {% if album.name | length > 20 %}
+                                        {{ album.name |striptags|slice(0, 20) }} ...
+                                    {% else %}
+                                        {{ album.name }}
+                                    {% endif %}
+                                </a> <br>
+                                {% for artist in album.artists %}
+                                    {% if artist.name | length > 20 %}
+                                        <i>
+                                            <a href="{{ path('artiste_page', {'id' : artist.id}) }}">
+                                                <span class="text-white">{{ artist.name |striptags|slice(0, 20) }} ... </span>
+                                            </a>
+                                        </i>
+                                    {% else %}
+                                        <i>
+                                            <a href="{{ path('artiste_page', {'id' : artist.id}) }}">
+                                                <span class="text-white">{{ artist.name }} </span>
+                                            </a>
+                                        </i>
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </div>
+                            <hr class="bg-danger">
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+            </div>
+
+            {% endif %}
+
+            <div class="col-md-6 gedf-main">
+
+                <div class="text-center">
+
+                    <div class="list-group" id="list-tab" role="tablist">
+                        <a class="list-group-item list-group-item-action hidden-xs fa fa-home btn btn-primary active" id="list-publication-list" data-toggle="list" href="#list-publication" role="tab" aria-controls="publication"> Publications</a>
+                        <a class="list-group-item list-group-item-action hidden-xs fa fa-star btn btn-primary" id="list-flows-list" data-toggle="list" href="#list-flows" role="tab" aria-controls="flows"> Flows</a>
+                    </div>
+
+                </div>
+
+                <!--- \\\\\\\Post-->
+
+
+
+                <div class="tab-content " id="nav-tabContent">
+
+                    <div class="tab-pane fade show active" id="list-publication" role="tabpanel" aria-labelledby="list-publication-list">
+                        {# On affiche le formulaire permettant de poster une nouvelle publication #}
+
+                        {{ form_start(publicationForm) }}
+
+                        <div class="card gedf-card">
+                            <div class="card-header">
+                                <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="posts-tab" data-toggle="tab" href="#posts" role="tab" aria-controls="posts" aria-selected="true">Poster une publication</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content" id="myTabContent">
+
+                                    <div class="tab-pane fade show active" id="posts" role="tabpanel" aria-labelledby="posts-tab">
+
+                                        {{ form_row(publicationForm.contenu, {'label' : false}) }}
+
+                                    </div>
+
+                                </div>
+                                <div class="btn-toolbar justify-content-between">
+                                    <div class="btn-group">
+                                        <button type="submit" class="btn btn-primary">Publier</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                        {{ form_end(publicationForm) }}
+
+                        <br><br>
+                        {# on recupere les plublication en reverse pour qu'elles soient classées de la + recente à la + ancienne #}
+                        {% for publication in publications|reverse %}
+                            {# Ici on verifie que l'utilisateur connecté Follow l'user ayant poster la publication #}
+                            {% if (app.user.follow(publication.auteur) or app.user == publication.auteur) %}
+
+                                <div id="publication{{ publication.id }}" class="card-header text-white bg-dark mb-3">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="mr-2">
+                                                    {% if app.user.image != NULL %}
+                                                        <img class="rounded-circle" width="45" height="45" src="{{ asset(app.user.image) }}" alt="">
+                                                    {% else %}
+                                                        <img class="rounded-circle" width="45" height="45" src="{{ asset('images/defaultprofil.jpg') }}" alt="">
+                                                    {% endif %}
+                                                </div>
+                                                <div class="ml-2">
+                                                    <div class="h5 m-0"><a href="{{ path('profil', {'id' : publication.auteur.id }) }}"><span class="text-white">{{ publication.auteur.username }}</span></a> </div>
+                                                </div>
+
+                                            </div>
+                                            <div class="text-muted h7 mb-2"> <i class="fa fa-clock-o"></i> {{ publication.dateCreation|date('d/m/y à H:i') }}</div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="card-body">
+                                        <p class="card-text">
+                                            {{ publication.contenu }} {# On affiche le contenu de la publication #}
+                                        </p>
+                                    </div>
+                                    <div class="card-footer">
+
+                                        {% set flowBool = false %}
+
+                                        {% for flow in publication.flows %}
+
+                                            {% if flow.auteur == app.user %}
+
+                                                {% set flowBool = true %}
+
+                                            {% endif %}
+
+                                            {# Dans cette boucle on regarde si l'utilisateur connecté
+                                                à aime la plublication ou non (FlowBool), en fonction on change
+                                                l'affichage du "Flow" on le passe en rouge #}
+                                        {% endfor %}
+
+                                        {% if flowBool %}
+                                            <a href="{{ path('flow_publication', {'id': publication.id}) }}" class="card-link js-like-publication fa fa-gittip text-danger">
+                                                                            <span class="js-like-publication-count">
+                                                                                {% if flows is defined %}
+                                                                                    {{ flows }}
+                                                                                {% else %}
+                                                                                    {{ publication.flows | length }}
+                                                                                {% endif %}
+                                                                            </span> Flows</a>
+                                        {% else %}
+                                            <a href="{{ path('flow_publication', {'id': publication.id}) }}" class="card-link js-like-publication fa fa-gittip">
+                                                                            <span class="js-like-publication-count">
+                                                                                {% if flows is defined %}
+                                                                                    {{ flows }}
+                                                                                {% else %}
+                                                                                    {{ publication.flows | length }}
+                                                                                {% endif %}
+                                                                            </span> Flows</a>
+                                        {% endif %}
+
+                                        <a href="#publication{{ publication.id }}" onclick="myFunction({{ publication.id }})" class="card-link"><i class="fa fa-comment"></i> Poster commentaire</a>
+
+
+                                        {% if app.user == publication.auteur %}
+                                            <a href="{{ path('publication_delete',{'id' : publication.id}) }}" class="card-link" data-toggle="modal" data-target="#exampleModal{{ publication.id }}"><i class="fa fa-remove"></i> Supprimer</a>
+
+                                            <!-- Modal -->
+                                            <form action="{{ path('publication_delete',{'id' : publication.id}) }}" method="post">
+                                                <div class="modal fade text-dark h5" id="exampleModal{{ publication.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="exampleModalLabel">Supprimer</h5>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                Êtes vous sur de vouloir supprimer cette publication ?
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="submit" class="href btn btn-success">Oui</button>
+                                                                <a class="btn btn-danger" href="#" role="button" data-dismiss="modal">Annuler</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+
+                                        {% endif %}
+
+                                        <div id="posterCommentaire{{ publication.id }}" style="display: none">
+                                            <br>
+                                            {{ form_start(formsComment[publication.id]) }}
+                                            {{ form_row(formsComment[publication.id].content, {'label' : false}) }}
+                                            <div class="text-center"><button class="btn bnt-edit">Poster commentaire</button></div>
+                                            {{ form_end(formsComment[publication.id]) }}
+                                        </div>
+
+                                        <div class="afficheCom">
+                                            <br>
+                                            <h5 class="text-center">Commentaires</h5>
+                                            {% for comPubli in publiCom %}
+
+                                                {% for comment in comPubli %}
+
+                                                    {% if publication.id == comment.getPublication().getId() %}
+                                                    <br>
+                                                    <div class="comment bg-light text-dark">
+                                                        <div class="card-header bg-light">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <div class="mr-2">
+                                                                        {% if app.user.image != NULL %}
+                                                                            <img class="rounded-circle" width="45" height="45" src="{{ asset(app.user.image) }}" alt="">
+                                                                        {% else %}
+                                                                            <img class="rounded-circle" width="45" height="45" src="{{ asset('images/defaultprofil.jpg') }}" alt="">
+                                                                        {% endif %}
+                                                                    </div>
+                                                                    <div class="ml-2">
+                                                                        <div class="h5 m-0"> {{ comment.auteur.username }}</div>
+                                                                    </div>
+
+                                                                </div>
+                                                                <div class="h7 mb-2"> <i class="fa fa-clock-o"></i> {{ comment.createdAt |date('d/m/y à H:i') }}</div>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="card-body bg-light">
+                                                            <p class="card-text">
+                                                                {{ comment.content  }}
+                                                            </p>
+                                                        </div>
+
+                                                        <div class="card-footer bg-light">
+
+                                                            {% set flowBool = false %}
+
+                                                            {% for flow in comment.flows %}
+
+                                                                {% if flow.auteur == app.user %}
+
+                                                                    {% set flowBool = true %}
+
+                                                                {% endif %}
+
+                                                                {# Dans cette boucle on regarde si l'utilisateur connecté
+                                                                    à aime la plublication ou non (FlowBool), en fonction on change
+                                                                    l'affichage du "Flow" on le passe en rouge #}
+                                                            {% endfor %}
+
+                                                            {% if flowBool %}
+                                                                <a href="{{ path('flow_Comment', {'id': comment.id}) }}" class="card-link js-like-publication fa fa-gittip text-danger">
+                                                                            <span class="js-like-publication-count">
+                                                                                {% if flows is defined %}
+                                                                                    {{ flows }}
+                                                                                {% else %}
+                                                                                    {{ comment.flows | length }}
+                                                                                {% endif %}
+                                                                            </span> Flows</a>
+                                                            {% else %}
+                                                                <a href="{{ path('flow_Comment', {'id': comment.id}) }}" class="card-link js-like-publication fa fa-gittip">
+                                                                            <span class="js-like-publication-count">
+                                                                                {% if flows is defined %}
+                                                                                    {{ flows }}
+                                                                                {% else %}
+                                                                                    {{ comment.flows | length }}
+                                                                                {% endif %}
+                                                                            </span> Flows</a>
+                                                            {% endif %}
+
+                                                            {% if app.user == comment.auteur %}
+                                                                <a href="{{ path('comment_delete',{'id' : comment.id}) }}" class="card-link" data-toggle="modal" data-target="#exampleModal{{ comment.id }}"><i class="fa fa-remove"></i> Supprimer</a>
+
+                                                                <!-- Modal -->
+                                                                <form action="{{ path('comment_delete',{'id' : comment.id}) }}" method="post">
+                                                                    <div class="modal fade text-dark h5" id="exampleModal{{ comment.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                                        <div class="modal-dialog" role="document">
+                                                                            <div class="modal-content">
+                                                                                <div class="modal-header">
+                                                                                    <h5 class="modal-title" id="exampleModalLabel">Supprimer</h5>
+                                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                                        <span aria-hidden="true">&times;</span>
+                                                                                    </button>
+                                                                                </div>
+                                                                                <div class="modal-body">
+                                                                                    Êtes vous sur de vouloir supprimer ce commentaire ?
+                                                                                </div>
+                                                                                <div class="modal-footer">
+                                                                                    <button type="submit" class="href btn btn-success">Oui</button>
+                                                                                    <a class="btn btn-danger" href="#" role="button" data-dismiss="modal">Annuler</a>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </form>
+                                                            {% endif %}
+
+                                                        </div>
+                                                    </div>
+
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            {% endif %}
+                        {% endfor %}
+
+                    </div>
+
+                    <div class="tab-pane fade show" id="list-flows" role="tabpanel" aria-labelledby="list-flows-list">
+                            <br>
+                            {% for flow in lastFlows if flow.auteur != app.user and (app.user.follow(flow.auteur)) %}
+                                {% if flow.publication %}
+                                {% set publication = flow.publication %}
+                                <div id="publication{{ publication.id }}" class="card-header text-white bg-dark mb-3">
+
+                                    <div class="text-success fa fa-gittip h5"> {{ flow.auteur.username }} a aimé le {{ flow.createdAt | date('d/m à H:i') }}</div>
+
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="mr-2">
+                                                    <img class="rounded-circle" width="45" height="45" src="http://vignette2.wikia.nocookie.net/onepiece/images/5/58/Monkey_D._Luffy_Post_Timeskip_Portrait.png/revision/20150916163728" alt="">
+                                                </div>
+                                                <div class="ml-2">
+                                                    <div class="h5 m-0">
+                                                        <a href="{{ path('profil', {'id' : publication.auteur.id }) }}"><span class="text-white">{{ publication.auteur.username }}</span></a>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                            <div class="text-muted h7 mb-2"> <i class="fa fa-clock-o"></i> {{ publication.dateCreation|date('d/m/y à H:i') }}</div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="card-body">
+                                        <p class="card-text">
+                                            {{ publication.contenu }}
+                                        </p>
+                                    </div>
+                                    <div class="card-footer">
+                                        {% if publication.flows is empty %}
+                                            <a href="{{ path('flow_publication', {'id': publication.id}) }}" class="card-link js-like-publication fa fa-gittip">
+                                                                    <span class="js-like-publication-count">
+                                                                        {% if flows is defined %}
+                                                                            {{ flows }}
+                                                                        {% else %}
+                                                                            {{ publication.flows |length }}
+                                                                        {% endif %}
+                                                                    </span> Flows</a>
+                                        {% endif %}
+
+                                        {% for flow in publication.flows %}
+                                            {% if publication.auteur == flow.auteur %}
+                                                <a href="{{ path('flow_publication', {'id': publication.id}) }}" class="card-link js-like-publication fa fa-gittip text-danger">
+                                                                        <span class="js-like-publication-count">
+                                                                            {% if flows is defined %}
+                                                                                {{ flows }}
+                                                                            {% else %}
+                                                                                {{ publication.flows | length }}
+                                                                            {% endif %}
+                                                                        </span> Flows</a>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                    </div>
+                                    <br><br>
+                                </div>
+
+                                {% elseif flow.article %}
+
+                                    {% set article = flow.article %}
+
+                                    <div class="cadre text-white mb-3">
+
+                                        <div class="text-success fa fa-gittip h5"> {{ flow.auteur.username }} a aimé le {{ flow.createdAt | date('d/m à H:i') }}</div>
+                                        <br>
+
+                                        <div class="article-container my-1 bg-light">
+
+                                            <a href="{{ path('article_show', { id: article.id }) }}">
+                                                <img class="article-img" src="{{ asset('images/asteroid.jpeg') }}">
+                                                <div class="article-title d-inline-block pl-3 align-middle">
+                                                    <span>{{ article.title }}</span>
+                                                    <br>
+
+                                                    <span class="align-left article-details"><img class="article-author-img rounded-circle" src="{{ asset(article.image) }}"> {{ article.author.username }} </span>
+                                                    <span class="pl-5 article-details float-right"> {{ article.createdAt | date('d/m/y') }} à {{ article.createdAt | date('H:i:s') }}</span>
+
+                                                </div>
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                {% elseif flow.trackId %}
+
+                                    {% for track in flowsAll.track %}
+
+                                        {% if track.id == flow.trackId %}
+
+                                            <div class="card-header text-white bg-dark mb-3">
+
+                                                <div class="text-success fa fa-gittip h5"> {{ flow.auteur.username }} a aimé le {{ flow.createdAt | date('d/m à H:i') }} </div>
+
+                                                <div class="card-header border border-danger">
+                                                    <h3 class="text-center text-white">Musique</h3>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="ml-2">
+                                                                <div class="h5 m-0">
+
+                                                                    <a href="{{ path('musique_page', {'id' : track.id}) }}"><span class="h5 text-warning">{{track.name}}</span></a>
+                                                                    <br>
+                                                                    <i>
+                                                                    de
+                                                                    {% for artist in track.artists %}
+                                                                        <a href="{{ path('artiste_page', {'id' : artist.id }) }}"> {{ artist.name }}</a>
+                                                                        {% if not loop.last %}
+                                                                            -
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                    </i>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="card-body">
+                                                    <p class="card-text">
+                                                        <div class="embed">
+                                                            <iframe src="https://open.spotify.com/embed/track/{{ track.id }}" width="350" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                                                        </div>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                    {% endfor %}
+                                {% elseif flow.albumId %}
+
+                                    {% for album in flowsAll.album %}
+
+                                        {% if album.id == flow.albumId %}
+
+                                            <div class="card-header text-white bg-dark mb-3">
+
+                                                <div class="text-success fa fa-gittip h5"> {{ flow.auteur.username }} a aimé le {{ flow.createdAt | date('d/m à H:i') }} </div>
+
+                                                <div class="card-header border border-danger">
+                                                    <h3 class="text-center text-white">Album</h3>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="ml-2">
+                                                                <div class="h5 m-0">
+                                                                    {% for image in album.images %}
+                                                                        {% if image.width == 64 %}
+                                                                            <div style="width:80px;height:80px;float:left;">
+                                                                                <img src="{{ image.url }}">
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                    <a href="{{ path('album_page', {'id' : album.id}) }}"><span class="h5 text-warning">{{album.name}}</span></a>
+                                                                    <br>
+                                                                    <i>
+                                                                        de
+                                                                        {% for artist in album.artists %}
+                                                                            <a href="{{ path('artiste_page', {'id' : artist.id }) }}"> {{ artist.name }}</a>
+                                                                            {% if not loop.last %}
+                                                                                -
+                                                                            {% endif %}
+                                                                        {% endfor %}
+                                                                    </i>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                    {% endfor %}
+                                {% elseif flow.artisteId %}
+
+                                    {% for artist in flowsAll.artiste %}
+
+                                        {% if artist.id == flow.artisteId %}
+
+                                            <div class="card-header text-white bg-dark mb-3">
+
+                                                <div class="text-success fa fa-gittip h5"> {{ flow.auteur.username }} a aimé le {{ flow.createdAt | date('d/m à H:i') }} </div>
+
+                                                <div class="card-header border border-danger">
+                                                    <h3 class="text-center text-white">Artiste</h3>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="ml-2">
+                                                                <div class="h5 m-0">
+                                                                    {% for image in artist.images %}
+                                                                        {% if loop.first %}
+                                                                            <div style="width:80px;height:80px;float:left;">
+                                                                                <img src="{{ image.url }}" width="60" height="60">
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                    <a href="{{ path('artiste_page', {'id' : artist.id}) }}"><span class="h3 text-warning">{{artist.name}}</span></a>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                    {% endfor %}
+
+                                {% elseif flow.playlistId %}
+
+                                    {% for playlist in flowsAll.playlist %}
+
+                                        {% if playlist.id == flow.playlistId %}
+
+                                            <div class="card-header text-white bg-dark mb-3">
+
+                                                <div class="text-success fa fa-gittip h5"> {{ flow.auteur.username }} a aimé le {{ flow.createdAt | date('d/m à H:i') }} </div>
+
+                                                <div class="card-header border border-danger">
+                                                    <h3 class="text-center text-white">Playlist</h3>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="ml-2">
+                                                                <div class="h5 m-0">
+                                                                    {% for image in playlist.images %}
+                                                                        {% if loop.first %}
+                                                                            <div style="width:80px;height:80px;float:left;">
+                                                                                <img src="{{ image.url }}" width="60" height="60">
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                    <a href="{{ path('playlist_page', {'id' : playlist.id}) }}"><span class="h3 text-warning">{{playlist.name}}</span></a>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+                <h3> Vos recommandations </h3>
+                <hr />
+                <div class="card gedf-card">
+                    <div class="card-body bg-dark text-white text-center">
+                        <br>
+                        {% for track in recommendations.tracks %}
+                            <a href="{{ path('musique_page', {'id' : track.id }) }}"><h7 class="text-warning ">{{ track.name }}</h7></a>
+                            <br><br>
+                            <iframe src="https://open.spotify.com/embed/track/{{ track.id }}" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                            <br>
+                            <hr class="bg-danger">
+                            <br>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('js/publication.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+
+            <!-- Article List -->
+
+            <div class="col-sm-12 col-md-8">
+
+
+
+                {% for article in articles|reverse %}
+
+                    {% if loop.first %}
+
+                        <!-- H1 Article -->
+                        <a class="main-article-link" href="{{ path('article_show', { id: article.id }) }}">
+                            <div class="main-article mb-5 pb-3">
+                                <img class="article-author-img rounded-circle" src="{{ asset(article.image) }}">
+                                <h1 class="text-center mt-2"> {{ article.title }} </h1>
+
+                                <span class="align-left article-details"> {{ article.author.username }} </span>
+                                <span class="pl-5 article-details float-right"> {{ article.createdAt | date('d/m/y') }} à {{ article.createdAt | date('H:i:s') }}</span>
+
+                            </div>
+                        </a>
+
+
+                        <!-- Supporting Articles -->
+
+                    {% else %}
+
+
+                        <div class="article-container my-1">
+                            <a href="{{ path('article_show', { id: article.id }) }}">
+                                <img class="article-img" src="{{ asset(article.image) }}">
+                                <div class="article-title d-inline-block pl-3 align-middle">
+                                    <span>{{ article.title }}</span>
+                                    <br>
+
+                                    <span class="align-left article-details"><img class="article-author-img rounded-circle" src="{{ asset(article.image) }}"> {{ article.author.username }} </span>
+                                    <span class="pl-5 article-details float-right"> {{ article.createdAt | date('d/m/y') }} à {{ article.createdAt | date('H:i:s') }}</span>
+
+                                </div>
+                            </a>
+                        </div>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </div>
+
+            <!-- Right bar ad space -->
+
+
+            <div class="col-sm-12 col-md-4 text-center">
+                <div class="card">
+                    <div class="card-body bg-dark text-white">
+                        <div class="h5">Les 10 nouveaux albums</div>
+                        <br>
+                        <hr class="bg-danger">
+                        {% for album in releases.albums.items %}
+
+                            {% for image in album.images %}
+                                {% if image.width == 64 %}
+
+                                    <div style="width:80px;height:80px;float:left;">
+                                        <img src="{{ image.url }}">
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+
+                            <div style="width:150px;height:70px;margin-left:80px">
+
+                                <a href="{{ path('album_page', {id : album.id}) }}">
+                                    {% if album.name | length > 20 %}
+                                        {{ album.name |striptags|slice(0, 20) }} ...
+                                    {% else %}
+                                        {{ album.name }}
+                                    {% endif %}
+                                </a> <br>
+                                {% for artist in album.artists %}
+                                    {% if artist.name | length > 20 %}
+                                        <i>
+                                            <a href="{{ path('artiste_page', {'id' : artist.id}) }}">
+                                                <span class="text-white">{{ artist.name |striptags|slice(0, 20) }} ... </span>
+                                            </a>
+                                        </i>
+                                    {% else %}
+                                        <i>
+                                            <a href="{{ path('artiste_page', {'id' : artist.id}) }}">
+                                                <span class="text-white">{{ artist.name }} </span>
+                                            </a>
+                                        </i>
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </div>
+                            <hr class="bg-danger">
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

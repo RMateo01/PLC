@@ -1,0 +1,176 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+
+    {{ parent() }}
+
+    <link rel="stylesheet" href="{{ asset('css/artiste.css') }}">
+
+{% endblock %}
+
+{% block body %}
+
+    <br>
+    <div class="col-lg-8 col-sm-8  mx-auto">
+        <div class="card hovercard bg-dark text-white mx-auto">
+            <div class="card-background">
+
+            </div>
+            <div class="useravatar mx-auto ">
+                {% for image in artiste.images %}
+                    {% if loop.first %}
+                        <img class="card-bkimg" alt="" src="{{ image.url }}" width="320" height="320">
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="card-info mx-auto">
+                <span class="card-title"><h3>{{ artiste.name }}</h3></span>
+
+                <h4>
+                    {% set flowBool = false %}
+                    {% for flow in app.user.flows if flow.artisteId == artiste.id %}
+
+                        {% set flowBool = true %}
+
+                    {% endfor %}
+
+                    {% if flowBool %}
+                        <a href="{{ path('flow_artiste', {'id': artiste.id}) }}" class="card-link js-like-artiste fa fa-heart text-danger">
+                            Flows
+                        </a>
+                    {% else %}
+                        <a href="{{ path('flow_artiste', {'id': artiste.id}) }}" class="card-link js-like-artiste fa fa-heart-o">
+                            Flows
+                        </a>
+                    {% endif %}
+                </h4>
+                <br>
+            </div>
+        </div>
+
+
+        <div class="text-center">
+
+                <div class="list-group" id="list-tab" role="tablist">
+                    <a class="list-group-item list-group-item-action hidden-xs fa fa-home btn btn-primary active" id="list-home-list" data-toggle="list" href="#list-home" role="tab" aria-controls="home">Home</a>
+                    <a class="list-group-item list-group-item-action hidden-xs fa fa-star btn btn-primary" id="list-profile-list" data-toggle="list" href="#list-profile" role="tab" aria-controls="profile"> Albums</a>
+                    <a class="list-group-item list-group-item-action fa fa-music btn btn-primary " id="list-messages-list" data-toggle="list" href="#list-messages" role="tab" aria-controls="messages"> Musiques</a>
+
+                </div>
+
+        </div>
+                <div class="tab-content " id="nav-tabContent">
+
+                    <div class="tab-pane fade show active bg-dark text-white text-center" id="list-home" role="tabpanel" aria-labelledby="list-home-list">
+                        <br>
+                        <h3>Informations sur l'artiste</h3>
+                        <br><br>
+                        Nom : {{ artiste.name }}
+                        <br><br>
+                        Followers : {{ artiste.followers.total }}
+                        <br><br>
+                        Genre :
+                            {% for genre in artiste.genres %}
+                                {{ genre }}
+                            {% endfor %}
+                        <br><br>
+                        Popularité : {{ artiste.popularity }}
+                        <br><br>
+                    </div>
+
+                    <div class="tab-pane fade bg-dark text-white text-center" id="list-profile" role="tabpanel" aria-labelledby="list-profile-list">
+                        <br>
+                        <h1 class="text-danger"> 10 derniers albums de {{ artiste.name }} </h1>
+                        <br>
+                        {% for album in  albumArtiste.items %}
+                            <div class="row">
+                                <br>
+                                {% for image in album.images %}
+                                    {% if image.height == 300 %}
+                                        <div class="container">
+                                            <br>
+                                            <div class="row">
+                                                <div class="col-md-12 text-center">
+                                                    <img class="img-album" src="{{ image.url }}" />
+                                                    <h2>Album</h2>
+                                                    <h3><a href="{{ path('album_page',{ id : album.id }) }}">{{ album.name }}</a></h3>
+                                                        {% if album.album_group == "appears_on" %}
+                                                            <i> {{ artiste.name }}  apparait dans cet album</i>
+                                                            <br>
+                                                        {% else %}
+                                                            <br>
+                                                            Type : {{ album.album_group }}
+                                                        {% endif %}
+                                                    <br>
+                                                    Date de sortie : {{ album.release_date }}
+                                                    <br>
+                                                    Nombre de musiques : {{ album.total_tracks }}</p>
+                                                    <br>
+                                                    <hr class="style1">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+
+
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="tab-pane fade bg-dark text-white text-center" id="list-messages" role="tabpanel" aria-labelledby="list-messages-list">
+                        <br>
+                        <h1 class="text-danger"> Top 10 FR des musiques de {{ artiste.name }} </h1>
+                        <br>
+                        {% for son in sonsArtiste.tracks %}
+                            {% set i = loop.index %}
+                            <div class="row">
+                                <br>
+                                {% for image in son.album.images %}
+                                    {% if image.height == 300 %}
+                                        <div class="container">
+                                            <br>
+                                            <div class="row">
+                                                <div class="col-md-12 text-center">
+                                                    <h1 class="text-danger">{{ i }}</h1>
+                                                    <br>
+                                                    <img class="img-album" src="{{ image.url }}" />
+                                                    <h2>Musique</h2>
+                                                    <h3><a href="{{ path('musique_page',{ id : son.id }) }}">{{ son.name }}</a></h3>
+                                                    <br>
+                                                    Artiste :
+                                                        {% for artist in son.artists %}
+                                                            {{ artist.name }}
+                                                        {% endfor %}
+                                                    <br>
+                                                    Date de sortie : {{ son.album.release_date }}
+                                                    <br>
+                                                    Popularité : {{ son.popularity }}</p>
+                                                    <br>
+                                                    <div class="embed">
+                                                        <iframe src="https://open.spotify.com/embed/track/{{ son.id }}" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                                                    </div>
+                                                    <hr class="style1">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+
+
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+    </div>
+
+{% endblock %}
+
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('js/publication.js') }}"></script>
+    <script src="{{ asset('js/artiste.js') }}"></script>
+{% endblock %}

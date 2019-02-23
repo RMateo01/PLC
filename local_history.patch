@@ -1,0 +1,461 @@
+Index: openCR/src/Controller/ReseauController.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- openCR/src/Controller/ReseauController.php	(date 1542842024008)
++++ openCR/src/Controller/ReseauController.php	(date 1542842024008)
+@@ -3,17 +3,13 @@
+ namespace App\Controller;
+ 
+ use App\Entity\Comment;
+-use App\Entity\Flow;
+ use App\Entity\Publication;
+ use App\Entity\User;
+ use App\Form\CommentType;
+ use App\Form\PublicationType;
+ use Doctrine\Common\Persistence\ObjectManager;
+ use Doctrine\ORM\EntityManager;
+-use Psr\Log\LoggerInterface;
+-use Psr\Log\Test\LoggerInterfaceTest;
+ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+-use Symfony\Component\HttpFoundation\JsonResponse;
+ use Symfony\Component\HttpFoundation\Request;
+ use Symfony\Component\Routing\Annotation\Route;
+ 
+@@ -27,102 +23,71 @@
+ 
+         $repo = $this->getDoctrine()->getRepository(Publication::class);
+ 
++        $entityManager = $this->getDoctrine()->getManager();
++
++        $query = $entityManager->createQueryBuilder();
++
++        $listeId = $query->select('id')
++                    ->from('publication', 'id')
++                    ->where('1')
++                    ->getQuery();
++
++        //$listeId = $query->getQuery('SELECT * FROM publication WHERE 1');
++
++
++        foreach ($listeId->iterate() as $row) {
++
++            $newComment = new Comment();
++
++            $formsComment[$listeId] = $this->container
++                ->get('form.factory')
++                ->createNamed('form'.$row[0], CommentType::class, $newComment)
++                ->createView();
++
++            $this->_em->detach($row[0]);
++        }
++
++        /*
++        for ($i = 1; $i <= $numberOfPublication ; $i++) {
++
++            $newComment = new Comment();
++
++            $formsComment[$i] = $this->container
++                ->get('form.factory')
++                ->createNamed('form'.$i, CommentType::class, $newComment)
++                ->createView();
++        }
++        */
++
+         $newPublication = new Publication();
+ 
+         $formPublication = $this->createForm(PublicationType::class, $newPublication);
+ 
+-
+         $formPublication->handleRequest($request);
+ 
+-        $user= new User();
++        if($formPublication->isSubmitted() && $form->isValid()){
++
++            $user= new User();
+ 
+-        $user = $this->getUser();
++            $user = $this->getUser();
+ 
+-        if($formPublication->isSubmitted() && $formPublication->isValid()){
+-
+-
+-
+             $newPublication->setAuteur($user);
+             $newPublication->setDateCreation(new \DateTime());
+ 
+             $manager->persist($newPublication);
+             $manager->flush();
+ 
+-            return $this->redirect($request->getUri());
+-
+         }
+ 
+         $publication = $repo->findAll();
+ 
+-        $repository = $this
+-            ->getDoctrine()
+-            ->getManager()
+-            ->getRepository(Publication::class);
+-
+-        $listPubli = $repository->findAll();
+-
+-
+-        $repoComment = $this
+-            ->getDoctrine()
+-            ->getManager()
+-            ->getRepository(Comment::class);
+-
+-        $formsComment = array();
+-        $publiCom = array();
+-
+-        foreach ($listPubli as $Publi) {
+-
+-            $idPubli[$Publi->getId()] = $Publi;
+-
+-            ${"newComment" . $Publi->getId()} = new Comment();
+-
+-            ${"form" . $Publi->getId()} = $this->createForm(CommentType::class, ${"newComment" . $Publi->getId()});
+-
+-
+-            ${"form" . $Publi->getId()} = $this->get('form.factory')->createNamed('form'.$Publi->getId(),CommentType::class,${"newComment" . $Publi->getId()});
+ 
+-            ${"form" . $Publi->getId()}->handleRequest($request);
+-
+-
+-            $formsComment[$Publi->getId()] = ${"form" . $Publi->getId()}->createView();
+-
+-            if(${"form" . $Publi->getId()}->isSubmitted() && ${"form" . $Publi->getId()}->isValid()){
+-
+-                $user= new User();
+-
+-                $user = $this->getUser();
+-
+-                $publicationCom = $repo = $this->getDoctrine()->getRepository(Publication::class)->find($Publi->getId());
+-
+-
+-                ${"newComment" . $Publi->getId()}->setAuteur($user);
+-                ${"newComment" . $Publi->getId()}->setCreatedAt(new \DateTime());
+-                ${"newComment" . $Publi->getId()}->setPublication($publicationCom);
+-
+-                $manager->persist(${"newComment" . $Publi->getId()});
+-                $manager->flush();
+-
+-                return $this->redirect($request->getUri());
+-
+-            }
+-
+-
+-            $listCom = $repoComment->findBy(
+-                array('publication' => $Publi->getId()), // Critere
+-                array('createdAt' => 'desc')     // Tri
+-            );
+-
+-            $publiCom[$Publi->getId()] = $listCom;
+-
+-
+-
+-        }
+ 
+         return $this->render('reseau/filActualite.html.twig', [
+             'publicationForm' => $formPublication->createView(),
+             'publications' => $publication,
+-            'formsComment' => $formsComment,
+-            'publiCom' => $publiCom,
++            'numberOfPubli' => $numberOfPublication,
++            'formsComment' => $formsComment
+         ]);
+     }
+ 
+@@ -142,290 +107,5 @@
+ 
+         return $this->redirectToRoute('reseau');
+     }
+-
+-
+-    /**
+-     * @Route("/reseau/{id}/deleteCom", name="comment_delete")
+-     */
+-    public function deleteComment($id,Request $request,ObjectManager $manager){
+-
+-        $comment = new Comment();
+-
+-        $repo = $this->getDoctrine()->getRepository(Comment::class);
+-
+-        $comment = $repo->findOneBy(['id' => $id]);
+-
+-        dump($comment);
+-
+-        $manager->remove($comment);
+-        $manager->flush();
+-
+-        return $this->redirectToRoute('reseau');
+-
+-    }
+-
+-    /**
+-     * @Route("/publication/{id}/comment/heart", name="flow_Comment", methods={"POST"}))
+-     */
+-    public function flowComment($id, LoggerInterface $logger,ObjectManager $manager){
+-
+-        $repoFlow = $this->getDoctrine()->getRepository(Flow::class);
+-        $repocomment = $this->getDoctrine()->getRepository(Comment::class);
+-
+-        $flow = new Flow();
+-
+-        $user = $this->getUser();
+-
+-        $comment = new Comment();
+-        $comment = $repocomment->findOneBy(['id' => $id]);
+-
+-        $exist = $repoFlow->findOneBy(['comment' => $id,'auteur' => $user->getId()]);
+-
+-        if(is_null($exist)){
+-
+-            $flow->setComment($comment);
+-            $flow->setAuteur($user);
+-            $flow->setType(1);
+-            $flow->setCreatedAt(new \DateTime());
+-
+-            $manager->persist($flow);
+-            $manager->flush();
+-
+-        }
+-        else{
+-
+-            $flowDelete = $repoFlow->findOneBy(['comment' => $id,'auteur' => $user->getId()]);
+-
+-            $manager->remove($flowDelete);
+-            $manager->flush();
+-
+-        }
+-
+-        $flowsPositif = $repoFlow->findBy(array('comment' => $id,'type' => 1));
+-        $flowsNegatif = $repoFlow->findBy(array('comment' => $id,'type' => 0));
+-
+-        $nbflowsP = count($flowsPositif);
+-        $nbflowsN = count($flowsNegatif);
+-        $nbflows = $nbflowsP-$nbflowsN;
+-
+-
+-        return new JsonResponse(['flows' => $nbflows]);
+-
+-    }
+-
+-
+-    /**
+-     * @Route("/publication/{id}/heart", name="flow_publication", methods={"POST"})
+-     */
+-    public function flowPublication($id, LoggerInterface $logger,ObjectManager $manager){
+-
+-        $repoFlow = $this->getDoctrine()->getRepository(Flow::class);
+-        $repopublication = $this->getDoctrine()->getRepository(Publication::class);
+-
+-        $flow = new Flow();
+-
+-        $user = $this->getUser();
+-
+-        $publication = new Publication();
+-        $publication = $repopublication->findOneBy(['id' => $id]);
+-
+-        $exist = $repoFlow->findOneBy(['publication' => $id,'auteur' => $user->getId()]);
+-
+-        if(is_null($exist)){
+-
+-            $flow->setPublication($publication);
+-            $flow->setAuteur($user);
+-            $flow->setType(1);
+-            $flow->setCreatedAt(new \DateTime());
+-
+-            $manager->persist($flow);
+-            $manager->flush();
+-
+-        }
+-        else{
+-
+-            $flowDelete = $repoFlow->findOneBy(['publication' => $id,'auteur' => $user->getId()]);
+-
+-            $manager->remove($flowDelete);
+-            $manager->flush();
+-
+-        }
+-
+-        $flowsPositif = $repoFlow->findBy(array('publication' => $id,'type' => 1));
+-        $flowsNegatif = $repoFlow->findBy(array('publication' => $id,'type' => 0));
+-
+-        $nbflowsP = count($flowsPositif);
+-        $nbflowsN = count($flowsNegatif);
+-        $nbflows = $nbflowsP-$nbflowsN;
+-
+-
+-        return new JsonResponse(['flows' => $nbflows]);
+-
+-    }
+-
+-    /**
+-     * @Route("/profil/{id}", name="profil")
+-     */
+-    public function profil($id,ObjectManager $manager,Request $request){
+-
+-        $profilUser = new user();
+-
+-        $repoUser = $this->getDoctrine()->getRepository(User::class);
+-
+-        $profilUser = $repoUser->findOneBy(['id' => $id]);
+-
+-        if($profilUser != null) {
+-
+-
+-            $user = new user;
+-
+-            $user = $this->getUser();
+-
+-            $amis = $user->getFriends();
+-
+-            $amis->toArray();
+-
+-            $user = new User();
+-
+-            $user = $this->getUser();
+-
+-
+-            $repository = $this
+-                ->getDoctrine()
+-                ->getManager()
+-                ->getRepository(Publication::class);
+-
+-            $listPubli = $repository->findBy(['auteur' => $profilUser]);
+-
+-            $repoComment = $this
+-                ->getDoctrine()
+-                ->getManager()
+-                ->getRepository(Comment::class);
+-
+-            $formsComment = array();
+-            $publiCom = array();
+-
+-            foreach ($listPubli as $Publi) {
+-
+-                $idPubli[$Publi->getId()] = $Publi;
+-
+-                ${"newComment" . $Publi->getId()} = new Comment();
+-
+-                ${"form" . $Publi->getId()} = $this->createForm(CommentType::class, ${"newComment" . $Publi->getId()});
+-
+-
+-                ${"form" . $Publi->getId()} = $this->get('form.factory')->createNamed('form' . $Publi->getId(), CommentType::class, ${"newComment" . $Publi->getId()});
+-
+-                ${"form" . $Publi->getId()}->handleRequest($request);
+-
+-
+-                $formsComment[$Publi->getId()] = ${"form" . $Publi->getId()}->createView();
+-
+-                if (${"form" . $Publi->getId()}->isSubmitted() && ${"form" . $Publi->getId()}->isValid()) {
+-
+-                    $user = new User();
+-
+-                    $user = $this->getUser();
+-
+-                    $publicationCom = $repo = $this->getDoctrine()->getRepository(Publication::class)->find($Publi->getId());
+-
+-
+-                    ${"newComment" . $Publi->getId()}->setAuteur($user);
+-                    ${"newComment" . $Publi->getId()}->setCreatedAt(new \DateTime());
+-                    ${"newComment" . $Publi->getId()}->setPublication($publicationCom);
+-
+-                    $manager->persist(${"newComment" . $Publi->getId()});
+-                    $manager->flush();
+-
+-                    return $this->redirect($request->getUri());
+-
+-                }
+-
+-
+-                $listCom = $repoComment->findBy(
+-                    array('publication' => $Publi->getId()), // Critere
+-                    array('createdAt' => 'desc')     // Tri
+-                );
+-
+-                $publiCom[$Publi->getId()] = $listCom;
+-
+-
+-            }
+-
+-        }
+-        else{
+-
+-            return $this->render('notfound.html.twig');
+-
+-        }
+-
+-        return $this->render('reseau/profil.html.twig', [
+-            'publications' => $listPubli,
+-            'formsComment' => $formsComment,
+-            'publiCom' => $publiCom,
+-            'name' => $profilUser->getUsername(),
+-            'amis' => $amis,
+-            'profilUser' => $profilUser
+-        ]);
+-    }
+-
+-    /**
+-     * @Route("/profil/{id}/follow", name="profil_follow")
+-     */
+-    public function follow($id,ObjectManager $manager){
+-
+-
+-        $user= new User();
+-
+-        $user = $this->getUser();
+-
+-        $profilUser = $this->getDoctrine()->getRepository(User::class)->findOneBy(['id' => $id]);
+-
+-
+-        if($user->follow($profilUser)){
+-
+-            $user->removeFriends($profilUser);
+-
+-            $manager->persist($user);
+-            $manager->flush();
+-
+-            return new JsonResponse(['status' => "Follow" ]);
+-
+-        }
+-        else{
+-
+-            $user->getFriends()->add($profilUser);
+-
+-            $manager->persist($user);
+-            $manager->flush();
+-
+-            return new JsonResponse(['status' => "Unfollow" ]);
+-
+-        }
+-
+-
+-    }
+-
+-
+-    /**
+-     * @Route("/artiste/{name}", name="artiste_page")
+-     */
+-    public function artiste($name,ObjectManager $manager){
+-
+-
+-        return $this->render('reseau/artiste.html.twig',[
+-            'name' => $name
+-        ]);
+-    }
+-
+-    /**
+-     * @Route("/album/{id}", name="album_page")
+-     */
+-    public function album($name,ObjectManager $manager){
+-
+-
+-        return $this->render('reseau/album.html.twig');
+-    }
+-
+ 
+ }

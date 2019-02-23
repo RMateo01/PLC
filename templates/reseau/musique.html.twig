@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="bg-dark text-white text-center">
+        <h1 class="text-danger">{{ track.name }}</h1>
+
+        <div class="bg-dark text-white text-center h3">
+            <i>
+                Apparait dans l'album <a href="{{ path('album_page', {'id' : track.album.id}) }}">{{ track.album.name }}</a>
+                <br>
+                de
+                    {% for artiste in track.album.artists %}
+                        <a href="{{ path('artiste_page', {'id' : artiste.id }) }}">{{ artiste.name }}</a>
+                    {% endfor %}
+            </i>
+            <br><br>
+            <div class="embed">
+                <iframe src="https://open.spotify.com/embed/track/{{ track.id }}" width="450" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            </div>
+
+            <br>
+            <h3>
+                {% set flowBool = false %}
+                {% for flow in app.user.flows if flow.trackId == track.id %}
+
+                    {% set flowBool = true %}
+
+                {% endfor %}
+
+                {% if flowBool %}
+                    <a href="{{ path('flow_musique', {'id': track.id}) }}" class="card-link js-like-musique fa fa-heart text-danger">
+                        Flows
+                    </a>
+                {% else %}
+                    <a href="{{ path('flow_musique', {'id': track.id}) }}" class="card-link js-like-musique fa fa-heart-o">
+                        Flows
+                    </a>
+                {% endif %}
+            </h3>
+            <br>
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">
+                Ajouter à une playlist
+            </button>
+
+            <!-- Modal -->
+            <form action="{{ path('track_playlist_add',{'idtrack' : track.id}) }}" method="post">
+                <div class="modal fade text-dark h5" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Supprimer</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                A quelle playlist souhaitez vous ajouter ce son ?
+                                <br>
+
+                                    <select name="playlist">
+                                        {% for playlist in playlistUser.items %}
+                                            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="href btn btn-success">Oui</button>
+                                <a class="btn btn-danger" href="#" role="button" data-dismiss="modal">Annuler</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <br>
+            <br>
+            Artiste :
+            {% for artiste in track.artists %}
+                {{ artiste.name }}
+                {% if not loop.last %}
+                    -
+                {% endif %}
+            {% endfor %}
+            <br><br>
+            Durée : {{ track.duration_ms }} Milliseconde
+            <br><br>
+            Popularité : {{ track.popularity }}
+
+            <br><br>
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('js/publication.js') }}"></script>
+{% endblock %}

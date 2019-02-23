@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="bg-dark text-white text-center">
+        <h1>Recherche Playlist </h1>
+
+        <h5>
+            {% for playlist in result.playlists.items %}
+
+                {% for image in playlist.images %}
+                    {% if loop.first %}
+                        <img src="{{ image.url }}" width="200" height="200">
+                    {% endif %}
+                {% endfor %}
+
+                <a href="{{ path('playlist_page', {'id' : playlist.id}) }}"><h5 class="text-warning">{{ playlist.name }}</h5></a>
+                <i> de {{ playlist.owner.display_name }}</i>
+                <br><br>
+                <hr class="bg-danger">
+            {% endfor %}
+        </h5>
+    </div>
+
+{% endblock %}

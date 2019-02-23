@@ -1,0 +1,22 @@
+.list-group{
+    flex-direction: row;
+}
+.btn-primary:not([disabled]):not(.disabled).active, .btn-primary:not([disabled]):not(.disabled):active, .show>.btn-primary.dropdown-toggle{
+    background-color: #343a40!important;
+}
+
+.style1 {
+    border-color : red;
+}
+
+.img-album {
+    float:left;
+    width:200px;
+    height:200px;
+    margin-right:10px;
+    margin-left: 10px;
+}
+
+.mycontent-left {
+    border-right: 1px dashed #333;
+}

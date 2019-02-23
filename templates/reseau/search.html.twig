@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="bg-dark text-white">
+
+        <h1 class="text-danger  text-center">Recherche</h1>
+        <br><br>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <h3>Users</h3>
+                    <hr class="bg-danger">
+                    <br>
+                    {% for user in resUser %}
+                        <a href="{{ path('profil', {'id' : user.id}) }}"><h5 class="text-warning">{{ user.username }}</h5></a>
+                        <i> ( {{ user.nom }} {{  user.prenom }} )</i>
+                        <br>
+                    {% endfor %}
+                </div>
+                <hr>
+                <div class="col-sm">
+                    <h3>Artistes</h3>
+                    <hr class="bg-danger">
+                    <br>
+                    {% for artist in result.artists.items %}
+                        <a href="{{ path('artiste_page', {'id' : artist.id}) }}"><h5 class="text-warning">{{ artist.name }}</h5></a>
+                        <i> Followers : {{ artist.followers.total }}</i>
+                        <br><br>
+                    {% endfor %}
+                </div>
+                <hr>
+                <div class="col-sm">
+                    <h3>Albums</h3>
+                    <hr class="bg-danger">
+                    <br>
+                    {% for album in result.albums.items %}
+                        <a href="{{ path('album_page', {'id' : album.id}) }}"><h5 class="text-warning">{{ album.name }}</h5></a>
+                        <i>de
+                            {% for artist in album.artists %}
+                                <a href="{{ path('artiste_page', {'id' : artist.id}) }}">{{ artist.name }}</a>
+                                {% if not loop.last %} - {% endif %}
+                            {% endfor %}
+                        </i>
+                        <br><br>
+                    {% endfor %}
+                </div>
+                <hr>
+                <div class="col-sm">
+                    <h3>Musiques</h3>
+                    <hr class="bg-danger">
+                    <br>
+                    {% for track in result.tracks.items %}
+                        <a href="{{ path('musique_page', {'id' : track.id}) }}"><h5 class="text-warning">{{ track.name }}</h5></a>
+                        <i>de
+                            {% for artist in track.artists %}
+                                <a href="{{ path('artiste_page', {'id' : artist.id}) }}">{{ artist.name }}</a>
+                                {% if not loop.last %} - {% endif %}
+                            {% endfor %}
+                        </i>
+                        <br><br>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+
+    {{ parent() }}
+
+    <link rel="stylesheet" href="{{ asset('css/flows.css') }}">
+
+{% endblock %}
+
+{% block body %}
+
+    <div class="bg-dark">
+        <div class="col-lg-8 col-sm-8  mx-auto bg-dark text-white text-center">
+
+            <h1>Flows </h1>
+
+            <div class="text-center">
+
+                <div class="list-group" id="list-tab" role="tablist">
+                    <a class="list-group-item list-group-item-action hidden-xs fa fa-home btn btn-primary active" id="list-home-list" data-toggle="list" href="#list-home" role="tab" aria-controls="home">Artiste</a>
+                    <a class="list-group-item list-group-item-action hidden-xs fa fa-star btn btn-primary" id="list-profile-list" data-toggle="list" href="#list-profile" role="tab" aria-controls="profile"> Albums</a>
+                    <a class="list-group-item list-group-item-action fa fa-music btn btn-primary " id="list-messages-list" data-toggle="list" href="#list-messages" role="tab" aria-controls="messages"> Musiques</a>
+                </div>
+
+            </div>
+
+            <div class="tab-content " id="nav-tabContent">
+
+                <div class="tab-pane fade show active bg-dark text-white text-center" id="list-home" role="tabpanel" aria-labelledby="list-home-list">
+                    {% for flow in flows %}
+                        {% if flow.artisteId %}
+                            {% for artiste in tabFlow.artiste %}
+                                {% if artiste.id == flow.artisteId %}
+                                    <br>
+                                    <div class="card-header border border-danger">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="ml-2">
+                                                    <div class="h7 m-0 text-center">
+                                                        {% for image in artiste.images %}
+                                                            {% if loop.first %}
+                                                                    <img src="{{ image.url }}" width="100" height="100">
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                        <a href="{{ path('artiste_page', {'id' : artiste.id}) }}"><span class="h5 text-warning">{{artiste.name}}</span></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="tab-pane fade show bg-dark text-white text-center" id="list-profile" role="tabpanel" aria-labelledby="list-home-list">
+                    {% for flow in flows %}
+                        {% if flow.albumId %}
+                            {% for album in tabFlow.album %}
+
+                                {% if album.id == flow.albumId %}
+
+                                    <div class="card-header text-white bg-dark mb-3">
+                                        <div class="card-header border border-danger">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="ml-2">
+                                                        <div class="h5 m-0">
+                                                            {% for image in album.images %}
+                                                                {% if image.width == 64 %}
+                                                                    <div style="width:80px;height:80px;float:left;">
+                                                                        <img src="{{ image.url }}">
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            <a href="{{ path('album_page', {'id' : album.id}) }}"><span class="h5 text-warning">{{album.name}}</span></a>
+                                                            <br>
+                                                            <i>
+                                                                de
+                                                                {% for artist in album.artists %}
+                                                                    <a href="{{ path('artiste_page', {'id' : artist.id }) }}"> {{ artist.name }}</a>
+                                                                    {% if not loop.last %}
+                                                                        -
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="tab-pane fade show bg-dark text-white text-center" id="list-messages" role="tabpanel" aria-labelledby="list-home-list">
+                    {% for flow in flows %}
+                        {% if flow.trackId %}
+                            {% for track in tabFlow.track %}
+
+                                {% if track.id == flow.trackId %}
+
+                                    <div class="card-header text-white bg-dark mb-3">
+
+                                        <div class="card-header border border-danger">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="ml-2">
+                                                        <div class="h5 m-0">
+
+                                                            <a href="{{ path('musique_page', {'id' : track.id}) }}"><span class="h5 text-warning">{{track.name}}</span></a>
+                                                            <br>
+                                                            <i>
+                                                                de
+                                                                {% for artist in track.artists %}
+                                                                    <a href="{{ path('artiste_page', {'id' : artist.id }) }}"> {{ artist.name }}</a>
+                                                                    {% if not loop.last %}
+                                                                        -
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </i>
+                                                        </div>
+                                                        <p class="card-text">
+                                                        <div class="embed">
+                                                            <iframe src="https://open.spotify.com/embed/track/{{ track.id }}" width="350" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                                                        </div>
+                                                        </p>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+        </div>
+    </div>
+
+{% endblock %}

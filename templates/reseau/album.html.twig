@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="text-center">
+        <h1>
+            {{ album.name }} -
+
+            {% for artist in album.artists %}
+                {% if artist.name | length > 20 %}
+                    {{ artist.name |striptags|slice(0, 20) }} ...
+                {% else %}
+                    <i> {{ artist.name }}</i>
+                {% endif %}
+            {% endfor %}
+
+        </h1>
+    </div>
+
+    <div class="row bg-dark text-white mx-auto px-2">
+
+        <div class="col-4">
+
+            <div class="album-img">
+
+                {% for image in album.images %}
+                    {% if image.height == 300 %}
+                        <img src="{{ image.url }}" >
+                    {% endif %}
+                    <br>
+                {% endfor %}
+
+
+            </div>
+
+
+        </div>
+
+        <div class="col-4">
+            <br>
+            <div class="embed">
+                <iframe src="https://open.spotify.com/embed/album/{{ album.id }}" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            </div>
+
+        </div>
+
+        <div class="col-4">
+
+            <br>
+            <h4> Informations album </h4>
+
+            <br>
+
+            <h3>
+                {% set flowBool = false %}
+                {% for flow in app.user.flows if flow.albumId == album.id %}
+
+                    {% set flowBool = true %}
+
+                {% endfor %}
+
+                {% if flowBool %}
+                    <a href="{{ path('flow_album', {'id': album.id}) }}" class="card-link js-like-album fa fa-heart text-danger">
+                        Flows
+                    </a>
+                {% else %}
+                    <a href="{{ path('flow_album', {'id': album.id}) }}" class="card-link js-like-album fa fa-heart-o">
+                        Flows
+                    </a>
+                {% endif %}
+            </h3>
+
+            <br><br>
+
+            Artiste :
+                    {% for artist in album.artists %}
+                        {% if artist.name | length > 20 %}
+                            <a href="{{ path('artiste_page', {id : artist.id}) }}">
+                                {{ artist.name |striptags|slice(0, 20) }} ...
+                            </a>
+                        {% else %}
+                            <a href="{{ path('artiste_page', {id : artist.id}) }}">
+                                {{ artist.name }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+            <br><br>
+            Date de sortie : {{ album.release_date }}
+            <br><br>
+            Label : {{ album.label }}
+            <br><br>
+            {% if album.genres is not empty %}
+                Genre :
+                    {% for genre in album.genres %}
+                        {{ genre }}
+                    {% endfor %}
+                <br><br>
+            {% endif %}
+            Copyrights :
+                {% for copyright in album.copyrights %}
+                    {% if loop.first %}
+                        {{ copyright.text }}
+                    {% endif %}
+                {% endfor %}
+
+        </div>
+        <br><br>
+    </div>
+
+    <div class="bg-dark text-center text-white">
+        <h1 class="text-center"><a href="#" onclick="afficheTrack();$(this).toggleClass('.fa fa-angle-down .text-danger');" class="fa fa-angle-right text-danger"> Liste musiques</a></h1>
+        <br><br>
+        <div id="tracks" style="display: none">
+            {% for track in album.tracks.items %}
+                <h3>{{ loop.index }}</h3>
+                <h3><a href="{{ path('musique_page',{'id' : track.id}) }}" class="text-warning"> {{ track.name }}</a></h3>
+                <h5>
+                    <i>
+                        de
+                        {% for artist in track.artists %}
+                            <a href="{{ path('artiste_page',{'id' : artist.id}) }}">{{ artist.name }}</a>
+                        {% endfor %}
+                    </i>
+                </h5>
+                <br>
+                <hr class="bg-danger">
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('js/publication.js') }}"></script>
+{% endblock %}

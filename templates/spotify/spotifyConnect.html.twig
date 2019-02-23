@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="bg-dark text-center text-white">
+        <div class="column">
+            <h1>
+                <br>
+                <div class="text-danger">
+                    Reliez votre compte Spotify à votre compte PLC
+                </div>
+            </h1>
+            <br><br>
+            <form class="ui large form">
+                <div class="ui stacked segment">
+                    <a href="{{ spotify_auth_url }}" class="ui fluid large teal submit button"><i class="spotify icon"></i><img src="{{ asset('images/spotifylogin.png') }}"></a>
+                </div>
+            </form>
+            <br><br><br><br><br>
+        </div>
+    </div>
+
+{% endblock %}
