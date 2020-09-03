@@ -9,8 +9,7 @@
 {% endblock %}
 
 {% block body %}
-
-    <div class="bg-dark">
+    <div class="bg-dark body">
         <div class="col-lg-8 col-sm-8  mx-auto bg-dark text-white text-center">
 
             <h1>Flows </h1>
@@ -28,6 +27,12 @@
             <div class="tab-content " id="nav-tabContent">
 
                 <div class="tab-pane fade show active bg-dark text-white text-center" id="list-home" role="tabpanel" aria-labelledby="list-home-list">
+                    {% if artisteFlow is empty %}
+                        <h5 class="mt-5"> Vous n'aimez aucun artiste, recherchez un artiste et lacher un Flow pour
+                            qu'il
+                            apparaisse
+                            ici</h5>
+                    {% endif %}
                     {% for flow in flows %}
                         {% if flow.artisteId %}
                             {% for artiste in tabFlow.artiste %}
@@ -57,6 +62,10 @@
                 </div>
 
                 <div class="tab-pane fade show bg-dark text-white text-center" id="list-profile" role="tabpanel" aria-labelledby="list-home-list">
+                    {% if albumFlow is empty %}
+                        <h5 class="mt-5"> Vous n'aimez aucun album, recherchez un album et lacher un Flow pour
+                            qu'il apparaisse ici</h5>
+                    {% endif %}
                     {% for flow in flows %}
                         {% if flow.albumId %}
                             {% for album in tabFlow.album %}
@@ -101,7 +110,14 @@
                 </div>
 
                 <div class="tab-pane fade show bg-dark text-white text-center" id="list-messages" role="tabpanel" aria-labelledby="list-home-list">
+                    {% if trackFlows is empty %}
+                        <h5 class="mt-5"> Vous n'aimez aucun track, recherchez un track et lacher un Flow pour
+                            qu'il
+                            apparaisse
+                            ici</h5>
+                    {% endif %}
                     {% for flow in flows %}
+
                         {% if flow.trackId %}
                             {% for track in tabFlow.track %}
 

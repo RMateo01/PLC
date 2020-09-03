@@ -36,7 +36,8 @@ class SpotifyController extends AbstractController
         $this->spotify = new Session(
             $this->spotifyParams['client_id'],
             $this->spotifyParams['client_secret'],
-            'http://127.0.0.1:8000/spotify/auth'
+            'http://plc.mateoromain.com/spotify/auth' // http://127.0.0.1:8000 en local
+        //'http://127.0.0.1:8000/spotify/auth'
         );
 
     }
@@ -81,7 +82,7 @@ class SpotifyController extends AbstractController
             return $this->redirectToRoute('reseau');
         }
 
-        return $this->render('spotify/SpotifyConnect.html.twig', array(
+        return $this->render('spotify/spotifyConnect.html.twig', array(
             'spotify_auth_url' => $spotify_auth_url,
 
         ));

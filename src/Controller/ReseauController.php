@@ -259,7 +259,6 @@ class ReseauController extends AbstractController
 
         $comment = $repo->findOneBy(['id' => $id]);
 
-        dump($comment);
 
         $manager->remove($comment);
         $manager->flush();
@@ -883,8 +882,6 @@ class ReseauController extends AbstractController
         $playlistUser = $api->getUserPlaylists($api->me()->id);
 
         $track = $api->getTrack($id);
-
-        dump($track);
         
         return $this->render('reseau/musique.html.twig',[
             'track' => $track,
@@ -973,7 +970,6 @@ class ReseauController extends AbstractController
 
             $rech = $_POST['search'];
             $result = $api->search($rech,['playlist'],['limit'=>10]);
-            dump($result);
         }
 
         return $this->render('reseau/searchPlaylist.html.twig',[
@@ -1046,10 +1042,11 @@ class ReseauController extends AbstractController
         $flowAll['album'] = $albumFlow;
         $flowAll['artiste'] = $artisteFlow;
 
-        dump($flowAll);
-
         return $this->render('reseau/flows.html.twig',[
             'flows' => $flowUser,
+            'trackFlows' => $trackFlow,
+            'albumFlow' => $albumFlow,
+            'artisteFlow' => $artisteFlow,
             'tabFlow' => $flowAll
         ]);
     }

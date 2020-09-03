@@ -1,3 +1,7 @@
 .list-group{
     flex-direction: row;
 }
+
+.body{
+    min-height: 100vh;
+}
